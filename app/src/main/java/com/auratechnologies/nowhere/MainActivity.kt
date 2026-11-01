@@ -10,6 +10,8 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
 import android.webkit.GeolocationPermissions
@@ -46,21 +48,24 @@ class MainActivity : AppCompatActivity() {
     private var latestLocation: Location? = null
     private var pendingPhotoFile: File? = null
     private var pendingPhotoUri: Uri? = null
-    private var pendingCaptureTimestamp: Long = 0L
-    private var pendingCaptureLatitude: Double = 0.0
-    private var pendingCaptureLongitude: Double = 0.0
-    private var pendingCaptureAltitude: Double = 0.0
-    private var pendingCaptureLocationAccuracy: Float = 0f
-    private var pendingCaptureAzimuth: Float = 0f
-    private var pendingCaptureDirectionAccuracy: Int = 0
-    private var pendingCaptureTransportMode: String = "UNKNOWN"
+
+    // 카메라에서 돌아온 직후 방향 센서가 새 값을 다시 보내기까지 기다리는 시간
+    private val CAPTURE_SENSOR_SETTLE_MS = 600L
+    private val captureHandler = Handler(Looper.getMainLooper())
 
     private val LOCATION_PERMISSION_REQUEST = 100
 
     private val cameraLauncher =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success) {
-                saveCapturedPhoto()
+                // 사진을 찍고 돌아온 순간의 위치와 방향을 저장한다.
+                // 카메라 앱이 떠 있는 동안에는 이 화면이 뒤로 가 있어서 센서 값이
+                // 잠시 멈춰 있을 수 있으므로, 새 값이 들어오도록 아주 잠깐 기다린다.
+                showStatus("촬영 위치와 방향을 기록하는 중...")
+                captureHandler.postDelayed(
+                    { saveCapturedPhoto() },
+                    CAPTURE_SENSOR_SETTLE_MS
+                )
             } else {
                 pendingPhotoFile?.delete()
                 pendingPhotoFile = null
@@ -808,21 +813,8 @@ class MainActivity : AppCompatActivity() {
             photoFile
         )
 
-        val captureLocation = latestLocation ?: return
-
-        pendingCaptureTimestamp = System.currentTimeMillis()
-
-        pendingCaptureLatitude = captureLocation.latitude
-        pendingCaptureLongitude = captureLocation.longitude
-        pendingCaptureAltitude = captureLocation.altitude
-        pendingCaptureLocationAccuracy = captureLocation.accuracy
-
-        pendingCaptureAzimuth = directionSensor.azimuth
-        pendingCaptureDirectionAccuracy = directionSensor.accuracy
-
-        pendingCaptureTransportMode =
-            movementDetector.currentMode.name
-
+        // 위치와 방향은 여기(버튼을 누른 순간)가 아니라
+        // 사진을 찍고 돌아온 순간에 saveCapturedPhoto()에서 저장한다.
         pendingPhotoFile = photoFile
         pendingPhotoUri = uri
 
@@ -834,7 +826,13 @@ class MainActivity : AppCompatActivity() {
         val file = pendingPhotoFile
         val uri = pendingPhotoUri
 
-        if (file == null || uri == null || pendingCaptureTimestamp == 0L) {
+        pendingPhotoFile = null
+        pendingPhotoUri = null
+
+        // 사진을 찍고 돌아온 지금 이 순간의 위치와 방향
+        val captureLocation = latestLocation
+
+        if (file == null || uri == null || captureLocation == null) {
             Toast.makeText(
                 this,
                 "사진 기록 정보를 완성할 수 없습니다.",
@@ -847,18 +845,18 @@ class MainActivity : AppCompatActivity() {
             id = UUID.randomUUID().toString(),
             photoUri = uri.toString(),
 
-            timestamp = pendingCaptureTimestamp,
+            timestamp = System.currentTimeMillis(),
 
-            latitude = pendingCaptureLatitude,
-            longitude = pendingCaptureLongitude,
-            altitude = pendingCaptureAltitude,
+            latitude = captureLocation.latitude,
+            longitude = captureLocation.longitude,
+            altitude = captureLocation.altitude,
 
-            locationAccuracy = pendingCaptureLocationAccuracy,
+            locationAccuracy = captureLocation.accuracy,
 
-            azimuth = pendingCaptureAzimuth,
-            directionAccuracy = pendingCaptureDirectionAccuracy,
+            azimuth = directionSensor.azimuth,
+            directionAccuracy = directionSensor.accuracy,
 
-            transportMode = pendingCaptureTransportMode
+            transportMode = movementDetector.currentMode.name
         )
 
         photoDatabase.add(record)
@@ -1054,6 +1052,7 @@ class MainActivity : AppCompatActivity() {
 
 
 override fun onDestroy() {
+    captureHandler.removeCallbacksAndMessages(null)
     directionSensor.stop()
     movementDetector.stopDetection()
 
