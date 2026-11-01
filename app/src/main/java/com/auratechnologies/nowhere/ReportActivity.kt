@@ -17,6 +17,11 @@ import kotlin.math.sin
 import android.content.Context
 import android.print.PrintAttributes
 import android.print.PrintManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.media.ExifInterface
+import java.io.ByteArrayOutputStream
 
 class ReportActivity : AppCompatActivity() {
 
@@ -78,7 +83,7 @@ class ReportActivity : AppCompatActivity() {
         if (movements.isEmpty() && photos.isEmpty()) {
             Toast.makeText(
                 this,
-                "?묒꽦??湲곕줉???놁뒿?덈떎.",
+                "작성할 기록이 없습니다.",
                 Toast.LENGTH_LONG
             ).show()
             finish()
@@ -834,21 +839,90 @@ class ReportActivity : AppCompatActivity() {
             else -> "북서"
         }
     }
+    /**
+     * 보고서에 사진을 넣을 때 원본 대신 긴 변이 1280px인 사진으로 줄여서 넣는다.
+     * 원본을 그대로 넣으면 사진이 많을 때 메모리가 부족해 앱이 꺼진다.
+     */
     private fun photoUriToBase64(uriString: String): String? {
         return try {
             val uri = Uri.parse(uriString)
 
-            contentResolver.openInputStream(uri)?.use { inputStream ->
-                val bytes = inputStream.readBytes()
-                val encoded = Base64.encodeToString(
-                    bytes,
-                    Base64.NO_WRAP
-                )
+            // 1) 크기만 먼저 읽는다 (사진 전체를 메모리에 올리지 않음).
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            val boundsStream = contentResolver.openInputStream(uri) ?: return null
+            boundsStream.use { BitmapFactory.decodeStream(it, null, bounds) }
+            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
 
-                "data:image/jpeg;base64,$encoded"
+            // 2) 필요한 만큼만 줄여서 읽는다.
+            var sampleSize = 1
+            while (maxOf(bounds.outWidth, bounds.outHeight) / (sampleSize * 2) >= REPORT_PHOTO_MAX_SIDE) {
+                sampleSize *= 2
             }
-        } catch (e: Exception) {
+            val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }
+            var bitmap = contentResolver.openInputStream(uri)?.use {
+                BitmapFactory.decodeStream(it, null, decodeOptions)
+            } ?: return null
+
+            // 3) 긴 변을 정확히 1280px로 맞추고, 사진 방향(EXIF)대로 돌린다.
+            val longSide = maxOf(bitmap.width, bitmap.height)
+            val scale = if (longSide > REPORT_PHOTO_MAX_SIDE) {
+                REPORT_PHOTO_MAX_SIDE.toFloat() / longSide
+            } else {
+                1f
+            }
+            val matrix = Matrix()
+            matrix.postScale(scale, scale)
+            val rotation = readPhotoRotation(uri)
+            if (rotation != 0) matrix.postRotate(rotation.toFloat())
+
+            if (scale != 1f || rotation != 0) {
+                val transformed = Bitmap.createBitmap(
+                    bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true
+                )
+                if (transformed != bitmap) bitmap.recycle()
+                bitmap = transformed
+            }
+
+            val output = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, REPORT_PHOTO_JPEG_QUALITY, output)
+            bitmap.recycle()
+
+            val encoded = Base64.encodeToString(
+                output.toByteArray(),
+                Base64.NO_WRAP
+            )
+
+            "data:image/jpeg;base64,$encoded"
+        } catch (e: Throwable) {
+            // OutOfMemoryError도 잡아서 사진 한 장 때문에 보고서 전체가 꺼지지 않게 한다.
             null
         }
+    }
+
+    /** 사진에 저장된 방향 정보를 읽어 몇 도 돌려야 하는지 알려 준다. */
+    private fun readPhotoRotation(uri: Uri): Int {
+        return try {
+            contentResolver.openInputStream(uri)?.use { stream ->
+                when (
+                    ExifInterface(stream).getAttributeInt(
+                        ExifInterface.TAG_ORIENTATION,
+                        ExifInterface.ORIENTATION_NORMAL
+                    )
+                ) {
+                    ExifInterface.ORIENTATION_ROTATE_90 -> 90
+                    ExifInterface.ORIENTATION_ROTATE_180 -> 180
+                    ExifInterface.ORIENTATION_ROTATE_270 -> 270
+                    else -> 0
+                }
+            } ?: 0
+        } catch (e: Exception) {
+            0
+        }
+    }
+
+    companion object {
+        /** 보고서에 넣는 사진의 긴 변 최대 크기(px). */
+        private const val REPORT_PHOTO_MAX_SIDE = 1280
+        private const val REPORT_PHOTO_JPEG_QUALITY = 85
     }
 }

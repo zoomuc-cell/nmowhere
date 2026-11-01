@@ -119,6 +119,21 @@ class MovementDatabase(private val context: Context) {
     // 총 기록 개수
     fun getTotalRecords(): Int = records.size
 
+    // 지정한 이동 기록을 메모리와 저장소에서 모두 지운다 (저장 기록 관리의 날짜별 삭제)
+    fun deleteRecords(toDelete: List<MovementRecord>) {
+        if (toDelete.isEmpty()) return
+
+        val editor = context
+            .getSharedPreferences("movement_logs", Context.MODE_PRIVATE)
+            .edit()
+
+        toDelete.forEach { editor.remove("record_${it.timestamp}") }
+        editor.apply()
+
+        val timestamps = toDelete.map { it.timestamp }.toSet()
+        records.removeAll { it.timestamp in timestamps }
+    }
+
     // 이동 수단별 통계
     fun getStatsByMode(): Map<String, Int> {
         return records.groupingBy { it.transportMode }.eachCount()

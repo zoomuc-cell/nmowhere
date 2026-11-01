@@ -17,19 +17,9 @@ final class MainViewController: WebScreenViewController,
     private var latestLocation: CLLocation?
     private var isTracking = false
 
-    // 촬영 버튼을 누른 순간의 위치/방향 정보 (Android pendingCapture* 대응)
-    private struct PendingCapture {
-        let fileName: String
-        let timestamp: Int64
-        let latitude: Double
-        let longitude: Double
-        let altitude: Double
-        let locationAccuracy: Double
-        let azimuth: Double
-        let directionAccuracy: Int
-        let transportMode: String
-    }
-    private var pendingCapture: PendingCapture?
+    // 촬영 중인지 표시 (Android pendingPhotoFile 대응).
+    // 위치와 방향은 버튼을 누른 순간이 아니라 사진을 찍고 돌아온 순간에 저장한다.
+    private var isCapturingPhoto = false
 
     init() {
         super.init(title: "NOWHERE", html: MainHTML.html, baseURL: URL(string: "https://nowhere.app"))
@@ -91,8 +81,9 @@ final class MainViewController: WebScreenViewController,
             push(Screens.integratedMap())
         case "openTimeline":
             push(Screens.timeline())
-        case "openReport", "openRecordManagement":
-            // Android와 동일하게 보고서 버튼도 저장 기록 관리 화면으로 연결된다.
+        case "openReport":
+            push(ReportViewController.make())
+        case "openRecordManagement":
             push(RecordManagementViewController())
         case "openCurrentLocation":
             openCurrentLocation()
@@ -152,7 +143,7 @@ final class MainViewController: WebScreenViewController,
             return
         }
 
-        guard let captureLocation = latestLocation else {
+        guard latestLocation != nil else {
             Toast.show("정확한 위치를 수신한 후 다시 촬영해주세요.", .long)
             showStatus("GPS 위치 수신 대기 중...")
             return
@@ -163,18 +154,7 @@ final class MainViewController: WebScreenViewController,
             return
         }
 
-        let now = Storage.nowMillis()
-        pendingCapture = PendingCapture(
-            fileName: "NOWHERE_\(now).jpg",
-            timestamp: now,
-            latitude: captureLocation.coordinate.latitude,
-            longitude: captureLocation.coordinate.longitude,
-            altitude: captureLocation.altitude,
-            locationAccuracy: captureLocation.horizontalAccuracy,
-            azimuth: directionSensor.azimuth,
-            directionAccuracy: directionSensor.accuracy,
-            transportMode: movementDetector.currentMode.rawValue
-        )
+        isCapturingPhoto = true
 
         let picker = UIImagePickerController()
         picker.sourceType = .camera
@@ -185,26 +165,37 @@ final class MainViewController: WebScreenViewController,
 
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         picker.dismiss(animated: true)
-        pendingCapture = nil
+        isCapturingPhoto = false
         showStatus("사진 촬영이 취소되었습니다.")
     }
 
     func imagePickerController(_ picker: UIImagePickerController,
                                didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+        // 사진을 찍고 돌아온 바로 이 순간의 위치와 방향을 먼저 기록한다.
+        // (카메라는 앱 안에서 열리므로 촬영하는 동안에도 센서 값이 계속 갱신된다.)
+        let now = Storage.nowMillis()
+        let captureLocation = latestLocation
+        let captureAzimuth = directionSensor.azimuth
+        let captureDirectionAccuracy = directionSensor.accuracy
+        let captureTransportMode = movementDetector.currentMode.rawValue
+
         picker.dismiss(animated: true)
 
-        guard let capture = pendingCapture,
+        let wasCapturing = isCapturingPhoto
+        isCapturingPhoto = false
+
+        guard wasCapturing,
+              let location = captureLocation,
               let image = info[.originalImage] as? UIImage,
               let data = image.jpegData(compressionQuality: 0.9) else {
-            pendingCapture = nil
             Toast.show("사진 기록 정보를 완성할 수 없습니다.", .long)
             return
         }
-        pendingCapture = nil
 
-        let relativePath = "photos/\(capture.fileName)"
+        let fileName = "NOWHERE_\(now).jpg"
+        let relativePath = "photos/\(fileName)"
         do {
-            try data.write(to: Storage.photoDirectory.appendingPathComponent(capture.fileName), options: .atomic)
+            try data.write(to: Storage.photoDirectory.appendingPathComponent(fileName), options: .atomic)
         } catch {
             Toast.show("사진 기록 정보를 완성할 수 없습니다.", .long)
             return
@@ -213,16 +204,19 @@ final class MainViewController: WebScreenViewController,
         let record = PhotoRecord(
             id: UUID().uuidString.lowercased(),
             photoUri: relativePath,
-            timestamp: capture.timestamp,
-            latitude: capture.latitude,
-            longitude: capture.longitude,
-            altitude: capture.altitude,
-            locationAccuracy: capture.locationAccuracy,
-            azimuth: capture.azimuth,
-            directionAccuracy: capture.directionAccuracy,
-            transportMode: capture.transportMode
+            timestamp: now,
+            latitude: location.coordinate.latitude,
+            longitude: location.coordinate.longitude,
+            altitude: location.altitude,
+            locationAccuracy: location.horizontalAccuracy,
+            azimuth: captureAzimuth,
+            directionAccuracy: captureDirectionAccuracy,
+            transportMode: captureTransportMode
         )
         photoDatabase.add(record)
+
+        // 사진 파일 자체에도 촬영 위치·시각·방향을 EXIF로 기록
+        PhotoExif.write(to: record.photoFileURL, record: record)
 
         let directionText = "\(Format.fixed(record.azimuth, 1))° \(Direction.name(record.azimuth))"
 

@@ -6,6 +6,8 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -182,6 +184,23 @@ class RecordManagementActivity : AppCompatActivity() {
 
                 container.addView(dayCard)
 
+                val deleteButton = Button(this).apply {
+                    text = "🗑 이 날짜 기록 삭제"
+                    setTextColor(0xFFD32F2F.toInt())
+
+                    setOnClickListener {
+                        confirmDeleteDay(
+                            dateText,
+                            dayMovements,
+                            dayPhotos,
+                            movementDatabase,
+                            photoDatabase
+                        )
+                    }
+                }
+
+                container.addView(deleteButton)
+
                 val spacer = TextView(this).apply {
                     height = 20
                 }
@@ -258,5 +277,38 @@ class RecordManagementActivity : AppCompatActivity() {
         scrollView.addView(container)
 
         setContentView(scrollView)
+    }
+
+    // 지우기 전에 확인 창을 띄우고, '삭제'를 누르면 그날의 이동 기록과 사진을 모두 지운다.
+    private fun confirmDeleteDay(
+        dateText: String,
+        dayMovements: List<MovementRecord>,
+        dayPhotos: List<PhotoRecord>,
+        movementDatabase: MovementDatabase,
+        photoDatabase: PhotoDatabase
+    ) {
+        AlertDialog.Builder(this)
+            .setTitle("기록 삭제")
+            .setMessage(
+                "$dateText 기록을 삭제할까요?\n\n" +
+                        "📍 이동 기록 ${dayMovements.size}건\n" +
+                        "📷 사진 ${dayPhotos.size}장\n\n" +
+                        "삭제한 기록과 사진은 되돌릴 수 없습니다."
+            )
+            .setNegativeButton("취소", null)
+            .setPositiveButton("삭제") { _, _ ->
+                movementDatabase.deleteRecords(dayMovements)
+                photoDatabase.delete(dayPhotos)
+
+                Toast.makeText(
+                    this,
+                    "$dateText 기록을 삭제했습니다.",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                // 화면을 다시 그려 요약과 날짜 목록을 새로 고친다.
+                recreate()
+            }
+            .show()
     }
 }
