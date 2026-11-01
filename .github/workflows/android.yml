@@ -19,6 +19,9 @@ on:
       - '.github/workflows/android.yml'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Assemble debug APK
@@ -38,3 +41,23 @@ jobs:
         with:
           name: nowhere-debug-apk
           path: app/build/outputs/apk/debug/*.apk
+
+      # On main, publish the APK as a "test" release so it can be
+      # downloaded straight onto a phone without signing in to GitHub.
+      - name: Rename APK for phone download
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: cp app/build/outputs/apk/debug/*.apk nowhere-test.apk
+
+      - name: Publish test release
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: test-latest
+          name: 테스트용 최신 버전 (안드로이드)
+          prerelease: true
+          make_latest: false
+          body: |
+            main 브랜치 최신 코드로 자동으로 만든 테스트용 안드로이드 앱입니다.
+            휴대폰에서 아래 nowhere-test.apk 를 눌러 받아 설치하세요.
+            빌드 커밋: ${{ github.sha }}
+          files: nowhere-test.apk
