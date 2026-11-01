@@ -134,9 +134,14 @@ enum MainHTML {
 
         border-radius: 22px;
 
-        padding: 18px 14px;
+        /* 아래쪽 52px은 오른쪽 아래 화살표(›) 자리라서 글자가 겹치지 않게 비워 둔다 */
+        padding: 18px 14px 52px 14px;
 
         text-align: left;
+
+        /* 긴 글자는 단어 단위로 두 줄로 넘어가게 한다 */
+        line-height: 1.3;
+        word-break: keep-all;
 
         font-size: 15px;
         font-weight: 600;
