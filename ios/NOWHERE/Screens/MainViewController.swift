@@ -224,6 +224,9 @@ final class MainViewController: WebScreenViewController,
         )
         photoDatabase.add(record)
 
+        // 사진 파일 자체에도 촬영 위치·시각·방향을 EXIF로 기록
+        PhotoExif.write(to: record.photoFileURL, record: record)
+
         let directionText = "\(Format.fixed(record.azimuth, 1))° \(Direction.name(record.azimuth))"
 
         Toast.show("사진 기록 완료\n방향: \(directionText)\nGPS 정확도: \(Format.int(record.locationAccuracy))m", .long)
