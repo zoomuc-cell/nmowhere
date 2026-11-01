@@ -25,6 +25,11 @@ android {
     }
 
     buildTypes {
+        // Test builds install next to the store version instead of
+        // replacing it, so existing records on the phone are not touched.
+        debug {
+            applicationIdSuffix '.test'
+        }
         release {
             minifyEnabled false
             //signingConfig signingConfigs.release//
