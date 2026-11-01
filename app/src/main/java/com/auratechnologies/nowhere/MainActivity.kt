@@ -86,6 +86,13 @@ class MainActivity : AppCompatActivity() {
         checkAndRequestPermissions()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // 저장 기록 관리에서 날짜별 기록을 지우고 돌아왔을 때 개수가 맞도록 다시 읽는다.
+        movementDatabase = MovementDatabase(this)
+        photoDatabase = PhotoDatabase(this)
+    }
+
     private fun setupWebView() {
         webView.settings.apply {
             javaScriptEnabled = true
