@@ -22,6 +22,7 @@ android {
         targetSdk 36
         versionCode 8
         versionName '5.2'
+        manifestPlaceholders = [appLabel: 'NOWHERE']
     }
 
     buildTypes {
@@ -29,6 +30,7 @@ android {
         // replacing it, so existing records on the phone are not touched.
         debug {
             applicationIdSuffix '.test'
+            manifestPlaceholders = [appLabel: 'NOWHERE 테스트']
         }
         release {
             minifyEnabled false
