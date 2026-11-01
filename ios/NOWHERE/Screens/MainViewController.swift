@@ -91,8 +91,9 @@ final class MainViewController: WebScreenViewController,
             push(Screens.integratedMap())
         case "openTimeline":
             push(Screens.timeline())
-        case "openReport", "openRecordManagement":
-            // Android와 동일하게 보고서 버튼도 저장 기록 관리 화면으로 연결된다.
+        case "openReport":
+            push(ReportViewController.make())
+        case "openRecordManagement":
             push(RecordManagementViewController())
         case "openCurrentLocation":
             openCurrentLocation()

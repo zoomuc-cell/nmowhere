@@ -700,7 +700,7 @@ class MainActivity : AppCompatActivity() {
                 startActivity(
                     Intent(
                         this@MainActivity,
-                        RecordManagementActivity::class.java
+                        ReportActivity::class.java
                     )
                 )
             }
