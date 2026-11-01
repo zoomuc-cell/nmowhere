@@ -106,7 +106,8 @@ class MainActivity : AppCompatActivity() {
         webView.webViewClient = WebViewClient()
 
         val htmlContent = """
-\<style>
+<!DOCTYPE html><html><head><meta charset='UTF-8'>
+<style>
     * {
         box-sizing: border-box;
         -webkit-tap-highlight-color: transparent;

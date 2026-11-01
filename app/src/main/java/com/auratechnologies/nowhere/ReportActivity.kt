@@ -78,7 +78,7 @@ class ReportActivity : AppCompatActivity() {
         if (movements.isEmpty() && photos.isEmpty()) {
             Toast.makeText(
                 this,
-                "?묒꽦??湲곕줉???놁뒿?덈떎.",
+                "작성할 기록이 없습니다.",
                 Toast.LENGTH_LONG
             ).show()
             finish()

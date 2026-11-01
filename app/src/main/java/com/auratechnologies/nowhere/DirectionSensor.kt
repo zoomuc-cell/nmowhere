@@ -1,4 +1,4 @@
-﻿package com.auratechnologies.nowhere
+package com.auratechnologies.nowhere
 
 import android.content.Context
 import android.hardware.Sensor
