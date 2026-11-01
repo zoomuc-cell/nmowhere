@@ -1,5 +1,6 @@
 import UIKit
 import WebKit
+import ImageIO
 
 /// Android ReportActivity.kt 대응: 기록 보고서 화면과 PDF 저장.
 final class ReportViewController: WebScreenViewController {
@@ -75,10 +76,24 @@ final class ReportViewController: WebScreenViewController {
         return ReportViewController(title: "기록 보고서", html: html)
     }
 
+    /// 보고서에 넣는 사진의 긴 변 최대 크기(px). Android REPORT_PHOTO_MAX_SIDE와 같다.
+    private static let reportPhotoMaxSide = 1280
+
     /// 보고서에 사진을 직접 넣기 위해 base64 data URL로 바꾼다 (Android photoUriToBase64 대응).
+    /// 원본을 그대로 넣으면 사진이 많을 때 메모리가 부족해 앱이 꺼지므로,
+    /// 긴 변이 1280px인 사진으로 줄여서 넣는다. 원본 전체를 메모리에 올리지 않는다.
     private static func photoDataUrl(_ photo: PhotoRecord) -> String? {
-        guard let data = try? Data(contentsOf: photo.photoFileURL) else { return nil }
-        return "data:image/jpeg;base64," + data.base64EncodedString()
+        return autoreleasepool {
+            guard let source = CGImageSourceCreateWithURL(photo.photoFileURL as CFURL, nil) else { return nil }
+            let options: [CFString: Any] = [
+                kCGImageSourceCreateThumbnailFromImageAlways: true,
+                kCGImageSourceCreateThumbnailWithTransform: true,
+                kCGImageSourceThumbnailMaxPixelSize: reportPhotoMaxSide
+            ]
+            guard let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary),
+                  let data = UIImage(cgImage: image).jpegData(compressionQuality: 0.85) else { return nil }
+            return "data:image/jpeg;base64," + data.base64EncodedString()
+        }
     }
 
     override func viewDidLoad() {
