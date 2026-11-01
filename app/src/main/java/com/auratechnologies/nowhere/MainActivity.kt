@@ -874,6 +874,9 @@ class MainActivity : AppCompatActivity() {
 
         photoDatabase.add(record)
 
+        // 사진 파일 자체에도 촬영 위치·시각·방향을 EXIF로 기록
+        PhotoExifWriter.write(file, record)
+
         val directionText =
             String.format("%.1f° %s", record.azimuth, directionSensor.getDirectionName())
 
