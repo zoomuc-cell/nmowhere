@@ -90,7 +90,14 @@ final class RecordManagementViewController: UIViewController {
                 }
 
                 stack.addArrangedSubview(card)
-                stack.setCustomSpacing(10, after: card)
+                stack.setCustomSpacing(6, after: card)
+
+                addButton("🗑 이 날짜 기록 삭제", color: .systemRed) { [weak self] in
+                    self?.confirmDeleteDay(dateText, movements: dayMovements, photos: dayPhotos)
+                }
+                if let deleteButton = stack.arrangedSubviews.last {
+                    stack.setCustomSpacing(16, after: deleteButton)
+                }
             }
         }
 
@@ -107,6 +114,47 @@ final class RecordManagementViewController: UIViewController {
         }
         addButton("📄 기록 보고서 / PDF") { [weak self] in
             self?.push(ReportViewController.make())
+        }
+    }
+
+    /// 지우기 전에 확인 창을 띄우고, '삭제'를 누르면 그날의 이동 기록과 사진을 모두 지운다.
+    private func confirmDeleteDay(_ dateText: String, movements: [MovementRecord], photos: [PhotoRecord]) {
+        let alert = UIAlertController(
+            title: "기록 삭제",
+            message: "\(dateText) 기록을 삭제할까요?\n\n" +
+                "📍 이동 기록 \(movements.count)건\n" +
+                "📷 사진 \(photos.count)장\n\n" +
+                "삭제한 기록과 사진은 되돌릴 수 없습니다.",
+            preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+        alert.addAction(UIAlertAction(title: "삭제", style: .destructive) { [weak self] _ in
+            MovementDatabase.shared.deleteRecords(movements)
+            PhotoDatabase.shared.delete(photos)
+            self?.reloadContent()
+            // 확인 창이 완전히 닫힌 뒤 안내 문구를 띄운다.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                self?.showToast("\(dateText) 기록을 삭제했습니다.")
+            }
+        })
+        present(alert, animated: true)
+    }
+
+    /// 요약과 날짜 목록을 새로 그린다.
+    private func reloadContent() {
+        stack.arrangedSubviews.forEach { view in
+            stack.removeArrangedSubview(view)
+            view.removeFromSuperview()
+        }
+        buildContent()
+    }
+
+    /// Android Toast.LENGTH_SHORT 대응: 잠깐 보였다 사라지는 안내 문구.
+    private func showToast(_ message: String) {
+        guard presentedViewController == nil else { return }
+        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        present(alert, animated: true)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak alert] in
+            alert?.dismiss(animated: true)
         }
     }
 
@@ -127,10 +175,10 @@ final class RecordManagementViewController: UIViewController {
         stack.setCustomSpacing(after, after: label)
     }
 
-    private func addButton(_ title: String, action: @escaping () -> Void) {
+    private func addButton(_ title: String, color: UIColor = .label, action: @escaping () -> Void) {
         var configuration = UIButton.Configuration.gray()
         configuration.title = title
-        configuration.baseForegroundColor = .label
+        configuration.baseForegroundColor = color
         let button = UIButton(configuration: configuration, primaryAction: UIAction { _ in action() })
         button.heightAnchor.constraint(greaterThanOrEqualToConstant: 48).isActive = true
         stack.addArrangedSubview(button)

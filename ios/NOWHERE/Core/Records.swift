@@ -98,6 +98,20 @@ final class JSONLinesStore<Record: Codable> {
             }
         }
     }
+
+    /// 파일 전체를 주어진 기록으로 다시 쓴다 (기록 삭제 시 사용).
+    func replaceAll(_ records: [Record]) {
+        let encoder = JSONEncoder()
+        var data = Data()
+        for record in records {
+            guard let line = try? encoder.encode(record) else { continue }
+            data.append(line)
+            data.append(0x0A)
+        }
+        queue.sync {
+            try? data.write(to: fileURL, options: .atomic)
+        }
+    }
 }
 
 final class MovementDatabase {
@@ -140,6 +154,14 @@ final class MovementDatabase {
     func getTotalRecords() -> Int {
         return records.count
     }
+
+    /// 지정한 이동 기록을 메모리와 파일에서 모두 지운다 (저장 기록 관리의 날짜별 삭제).
+    func deleteRecords(_ toDelete: [MovementRecord]) {
+        guard !toDelete.isEmpty else { return }
+        let timestamps = Set(toDelete.map { $0.timestamp })
+        records.removeAll { timestamps.contains($0.timestamp) }
+        store.replaceAll(records)
+    }
 }
 
 final class PhotoDatabase {
@@ -168,5 +190,16 @@ final class PhotoDatabase {
 
     func getTotalRecords() -> Int {
         return records.count
+    }
+
+    /// 지정한 사진 기록과 사진 파일을 모두 지운다 (저장 기록 관리의 날짜별 삭제).
+    func delete(_ toDelete: [PhotoRecord]) {
+        guard !toDelete.isEmpty else { return }
+        for record in toDelete {
+            try? FileManager.default.removeItem(at: record.photoFileURL)
+        }
+        let ids = Set(toDelete.map { $0.id })
+        records.removeAll { ids.contains($0.id) }
+        store.replaceAll(records)
     }
 }
