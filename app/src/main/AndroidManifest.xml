@@ -19,7 +19,11 @@
     <uses-feature android:name="android.hardware.sensor.barometer" android:required="false" />
 
     <application
+        android:name=".NowhereApp"
         android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        tools:targetApi="31"
         android:icon="@mipmap/ic_launcher"
         android:label="${appLabel}"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
@@ -68,6 +72,11 @@
         <activity
             android:name=".CurrentLocationActivity"
             android:label="현재 위치"
+            android:exported="false" />
+        <activity
+            android:name=".billing.PaywallActivity"
+            android:label="NOWHERE Pro"
+            android:launchMode="singleTop"
             android:exported="false" />
         <provider
             android:name="androidx.core.content.FileProvider"

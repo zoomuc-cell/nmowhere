@@ -10,4 +10,6 @@
    <include domain="sharedpref" path="."/>
    <exclude domain="sharedpref" path="device.xml"/>
 -->
+    <!-- Pro 구독 캐시는 백업하지 않음: 복원 후 Google Play로 다시 확인 -->
+    <exclude domain="sharedpref" path="nowhere_pro.xml"/>
 </full-backup-content>

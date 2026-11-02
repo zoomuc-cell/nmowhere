@@ -1,5 +1,6 @@
 package com.auratechnologies.nowhere
 
+import com.auratechnologies.nowhere.billing.ProGate
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -17,6 +18,7 @@ class RecordManagementActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (ProGate.redirectIfLocked(this)) return
 
         val movementDatabase = MovementDatabase(this)
         val photoDatabase = PhotoDatabase(this)
