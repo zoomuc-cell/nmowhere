@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace 'com.auratechnologies.nowhere'
-    compileSdk 35
+    compileSdk 36
 
     signingConfigs {
         release {
@@ -23,9 +23,16 @@ android {
         versionCode 9
         versionName '5.3'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        manifestPlaceholders = [appLabel: 'NOWHERE']
     }
 
     buildTypes {
+        // Test builds install next to the store version instead of
+        // replacing it, so existing records on the phone are not touched.
+        debug {
+            applicationIdSuffix '.test'
+            manifestPlaceholders = [appLabel: 'NOWHERE 테스트']
+        }
         release {
             minifyEnabled false
             //signingConfig signingConfigs.release//
@@ -45,9 +52,9 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:21.1.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.core:core-ktx:1.13.1'
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.9.0'
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.exifinterface:exifinterface:1.3.7'
     implementation 'com.android.billingclient:billing-ktx:8.0.0'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
