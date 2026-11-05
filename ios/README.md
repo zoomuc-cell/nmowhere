@@ -71,3 +71,16 @@ GitHub > Actions > iOS build > Run workflow 에서 **testflight**를 체크하�
 | `ASC_KEY_P8` | 내려받은 `AuthKey_XXXX.p8` 파일 내용 전체 |
 
 App Store Connect에 번들 ID `com.auratechnologies.nowhere`로 앱이 먼저 만들어져 있어야 업로드됩니다.
+
+## Codemagic으로 TestFlight 올리기 (GitHub Actions 대신 쓸 때)
+
+저장소 맨 위의 `codemagic.yaml`이 설정 파일입니다. 처음 한 번만 아래를 해 주세요.
+
+1. App Store Connect > 사용자 및 액세스 > 통합 > App Store Connect API 에서 키를 만듭니다 (권한: 앱 관리). `.p8` 파일을 내려받고 Issuer ID와 키 ID를 적어 둡니다.
+2. Codemagic > Settings(계정 설정) > Integrations > **Developer Portal** > Connect 를 누르고, API 키 이름을 정확히 `nowhere_asc` 로 넣은 뒤 Issuer ID, Key ID, `.p8` 파일을 올립니다.
+3. Codemagic > Settings > **Code signing identities** > iOS certificates 에서 Generate certificate 로 배포용(Apple Distribution) 인증서를 만듭니다. 이미 있는 인증서가 있다면 Fetch 로 가져와도 됩니다. 프로비저닝 프로파일은 빌드할 때 자동으로 만들어집니다.
+4. App Store Connect에 번들 ID `com.auratechnologies.nowhere`로 앱을 먼저 만들어 둡니다.
+5. (선택) 앱 정보의 Apple ID(숫자)를 `codemagic.yaml`의 `APP_STORE_APPLE_ID`에 넣으면 TestFlight의 마지막 빌드 번호 + 1로 올립니다. 비워 두면 1000 + Codemagic 빌드 번호를 씁니다.
+6. Codemagic 앱 화면에서 Check for configuration files 를 누르고, Start new build > 브랜치 `main`, 워크플로 `NOWHERE iOS TestFlight` 로 실행합니다.
+
+GitHub Actions의 TestFlight 업로드(빌드 번호 100번대)와 Codemagic(1000번대)은 둘 중 하나만 쓰는 것을 권합니다.
