@@ -1,0 +1,47 @@
+# Codemagic: NOWHERE 아이폰 앱을 빌드해 TestFlight에 올린다.
+# 처음 설정 방법은 ios/README.md의 "Codemagic으로 TestFlight 올리기"를 보세요.
+workflows:
+  ios-testflight:
+    name: NOWHERE iOS TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      # Codemagic 팀/계정 설정 > Integrations > Developer Portal 에 등록한 API 키 이름
+      app_store_connect: nowhere_asc
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.auratechnologies.nowhere
+      vars:
+        XCODE_PROJECT: ios/NOWHERE.xcodeproj
+        XCODE_SCHEME: NOWHERE
+        # App Store Connect > 앱 정보 > Apple ID (숫자). 비워 두면 빌드 번호는 1000 + Codemagic 빌드 번호.
+        APP_STORE_APPLE_ID: ""
+      xcode: latest
+    scripts:
+      - name: Set up code signing
+        script: xcode-project use-profiles
+      - name: Set build number
+        script: |
+          set -e
+          NEXT=$((1000 + BUILD_NUMBER))
+          if [ -n "$APP_STORE_APPLE_ID" ]; then
+            LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
+            case "$LATEST" in ''|*[!0-9]*) LATEST=0 ;; esac
+            if [ $((LATEST + 1)) -gt "$NEXT" ]; then NEXT=$((LATEST + 1)); fi
+          fi
+          echo "Build number: $NEXT"
+          sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = $NEXT;/" ios/NOWHERE.xcodeproj/project.pbxproj
+          grep -m1 CURRENT_PROJECT_VERSION ios/NOWHERE.xcodeproj/project.pbxproj
+      - name: Build ipa
+        script: |
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
