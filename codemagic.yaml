@@ -23,13 +23,30 @@ workflows:
         script: keychain initialize
       - name: Fetch or create signing files
         script: |
+          set -e
           if [ -z "${CERTIFICATE_PRIVATE_KEY:-}" ]; then
             echo "CERTIFICATE_PRIVATE_KEY가 없습니다. Codemagic 앱 화면 > Environment variables 에 그룹 nowhere_signing 으로 넣어 주세요 (ios/README.md 참고)."
             exit 1
           fi
+          # Windows에서 만든 키도 쓸 수 있게 정리한다: CRLF 제거, 한 줄로 붙은 \n 복원,
+          # OpenSSH 형식(BEGIN OPENSSH PRIVATE KEY)이면 PEM(RSA)으로 변환.
+          KEY_FILE="$CM_BUILD_DIR/cert_key"
+          printf '%s\n' "$CERTIFICATE_PRIVATE_KEY" | tr -d '\r' | sed 's/\\n/\n/g' > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+          if grep -q "BEGIN OPENSSH PRIVATE KEY" "$KEY_FILE"; then
+            echo "OpenSSH 형식 키를 PEM 형식으로 변환합니다."
+            ssh-keygen -p -N "" -m PEM -f "$KEY_FILE" >/dev/null
+          fi
+          if ! grep -q "BEGIN .*PRIVATE KEY" "$KEY_FILE"; then
+            echo "CERTIFICATE_PRIVATE_KEY 값이 개인키가 아닙니다. cert_key 파일(.pub 아님)의 내용 전체를 넣어 주세요."
+            head -c 30 "$KEY_FILE" | sed 's/[A-Za-z0-9+\/=]\{8,\}/.../g'
+            exit 1
+          fi
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
+            --certificate-key "@file:$KEY_FILE" \
             --create
+          rm -f "$KEY_FILE"
       - name: Use signing files
         script: |
           keychain add-certificates
