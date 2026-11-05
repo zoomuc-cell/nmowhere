@@ -79,12 +79,13 @@ final class MainViewController: WebScreenViewController,
             push(Screens.photoDirectionMap())
         case "openIntegratedMap":
             push(Screens.integratedMap())
+        // Pro 전용 화면 (Android ProGate.open 대응): 미구독이면 결제 화면을 먼저 연다.
         case "openTimeline":
-            push(Screens.timeline())
+            ProGate.open(from: navigationController) { Screens.timeline() }
         case "openReport":
-            push(ReportViewController.make())
+            ProGate.open(from: navigationController) { ReportViewController.make() }
         case "openRecordManagement":
-            push(RecordManagementViewController())
+            ProGate.open(from: navigationController) { RecordManagementViewController() }
         case "openCurrentLocation":
             openCurrentLocation()
         case "takeEvidencePhoto":

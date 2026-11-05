@@ -21,6 +21,9 @@
 		61AA1085E41EF490C58A1D60 /* PhotoRecordsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F5E069F9B3ED8CC75063B1 /* PhotoRecordsViewController.swift */; };
 		0B8AFB05E7DF8103FE68593D /* RecordManagementViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16404A82779452FDEE46F703 /* RecordManagementViewController.swift */; };
 		61143D204C27D8A3AD22D48C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C09D35DD9231DE3C6ECBDE36 /* Assets.xcassets */; };
+		B1A1000000000000000000A1 /* ProStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A1000000000000000000A2 /* ProStore.swift */; };
+		B1A1000000000000000000B1 /* PaywallViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A1000000000000000000B2 /* PaywallViewController.swift */; };
+		B1A1000000000000000000D1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B1A1000000000000000000D2 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +44,9 @@
 		16404A82779452FDEE46F703 /* RecordManagementViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordManagementViewController.swift; sourceTree = "<group>"; };
 		C09D35DD9231DE3C6ECBDE36 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		81CEA1B6F87D532DDE338C06 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B1A1000000000000000000A2 /* ProStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProStore.swift; sourceTree = "<group>"; };
+		B1A1000000000000000000B2 /* PaywallViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallViewController.swift; sourceTree = "<group>"; };
+		B1A1000000000000000000D2 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,7 +74,9 @@
 				242F701073F2887D0DC80D47 /* AppDelegate.swift */,
 				6181C844C135BE67318DCF39 /* Core */,
 				8462F2A52B75B2582B5D7FBF /* Screens */,
+				B1A1000000000000000000C0 /* Billing */,
 				C09D35DD9231DE3C6ECBDE36 /* Assets.xcassets */,
+				B1A1000000000000000000D2 /* PrivacyInfo.xcprivacy */,
 				81CEA1B6F87D532DDE338C06 /* Info.plist */,
 			);
 			path = NOWHERE;
@@ -99,6 +107,15 @@
 				16404A82779452FDEE46F703 /* RecordManagementViewController.swift */,
 			);
 			path = Screens;
+			sourceTree = "<group>";
+		};
+		B1A1000000000000000000C0 /* Billing */ = {
+			isa = PBXGroup;
+			children = (
+				B1A1000000000000000000A2 /* ProStore.swift */,
+				B1A1000000000000000000B2 /* PaywallViewController.swift */,
+			);
+			path = Billing;
 			sourceTree = "<group>";
 		};
 		0A2C978E52A76F0AA9F68BB5 /* Products */ = {
@@ -168,6 +185,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				61143D204C27D8A3AD22D48C /* Assets.xcassets in Resources */,
+				B1A1000000000000000000D1 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -192,6 +210,8 @@
 				CFBF91227F359C5029FDC261 /* ReportViewController.swift in Sources */,
 				61AA1085E41EF490C58A1D60 /* PhotoRecordsViewController.swift in Sources */,
 				0B8AFB05E7DF8103FE68593D /* RecordManagementViewController.swift in Sources */,
+				B1A1000000000000000000A1 /* ProStore.swift in Sources */,
+				B1A1000000000000000000B1 /* PaywallViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -244,14 +264,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = NOWHERE/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.2;
+				MARKETING_VERSION = 5.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.auratechnologies.nowhere;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -264,14 +284,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = NOWHERE/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.2;
+				MARKETING_VERSION = 5.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.auratechnologies.nowhere;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
