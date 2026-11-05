@@ -15,8 +15,6 @@ workflows:
       vars:
         XCODE_PROJECT: ios/NOWHERE.xcodeproj
         XCODE_SCHEME: NOWHERE
-        # App Store Connect > 앱 정보 > Apple ID (숫자). 비워 두면 빌드 번호는 1000 + Codemagic 빌드 번호.
-        APP_STORE_APPLE_ID: ""
       xcode: latest
     scripts:
       - name: Set up code signing
@@ -24,8 +22,10 @@ workflows:
       - name: Set build number
         script: |
           set -e
+          # vars에 APP_STORE_APPLE_ID(앱의 Apple ID 숫자)를 넣으면 TestFlight 마지막 빌드 번호 + 1을 쓴다.
+          # 없으면 1000 + Codemagic 빌드 번호. (빈 값 "" 은 Codemagic이 거부하므로 값이 생길 때만 줄을 추가)
           NEXT=$((1000 + BUILD_NUMBER))
-          if [ -n "$APP_STORE_APPLE_ID" ]; then
+          if [ -n "${APP_STORE_APPLE_ID:-}" ]; then
             LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
             case "$LATEST" in ''|*[!0-9]*) LATEST=0 ;; esac
             if [ $((LATEST + 1)) -gt "$NEXT" ]; then NEXT=$((LATEST + 1)); fi
