@@ -78,7 +78,10 @@ App Store Connect에 번들 ID `com.auratechnologies.nowhere`로 앱이 먼저 �
 
 1. App Store Connect > 사용자 및 액세스 > 통합 > App Store Connect API 에서 키를 만듭니다 (권한: 앱 관리). `.p8` 파일을 내려받고 Issuer ID와 키 ID를 적어 둡니다.
 2. Codemagic > Settings(계정 설정) > Integrations > **Developer Portal** > Connect 를 누르고, API 키를 등록합니다(현재 등록된 이름: `N8CMWWQ693`. 이름을 바꾸면 `codemagic.yaml`의 `app_store_connect` 값도 같이 바꿔야 합니다). 넣을 것: Issuer ID, Key ID, `.p8` 파일을 올립니다.
-3. Codemagic > Settings > **Code signing identities** > iOS certificates 에서 Generate certificate 로 배포용(Apple Distribution) 인증서를 만듭니다. 이미 있는 인증서가 있다면 Fetch 로 가져와도 됩니다. 프로비저닝 프로파일은 빌드할 때 자동으로 만들어집니다.
+3. 배포 인증서용 개인키를 Codemagic에 넣습니다. 빌드할 때 이 키로 배포 인증서, 번들 ID, 프로비저닝 프로파일을 자동으로 만들거나 찾아 씁니다.
+   - WEEKLINE이나 HIKER-PRO에 이미 넣은 `CERTIFICATE_PRIVATE_KEY`가 있으면 **같은 값**을 쓰세요 (Apple 배포 인증서는 계정당 개수 제한이 있어 하나를 같이 쓰는 게 좋습니다).
+   - 없으면 PC의 PowerShell(또는 Mac 터미널)에서 `ssh-keygen -t rsa -b 2048 -m PEM -f cert_key -q -N '""'` 를 실행하면 `cert_key` 파일이 생깁니다. 이 파일 내용 전체(`-----BEGIN RSA PRIVATE KEY-----`부터 끝까지)가 값입니다.
+   - Codemagic > Applications > nowhere > **Environment variables** 탭에서 Variable name `CERTIFICATE_PRIVATE_KEY`, Value에 키 내용, Group은 `nowhere_signing`, **Secret** 체크 후 Add.
 4. App Store Connect에 번들 ID `com.auratechnologies.nowhere`로 앱을 먼저 만들어 둡니다.
 5. (선택) App Store Connect > 앱 > 일반 > 앱 정보 > Apple ID(숫자 10자리)를 `codemagic.yaml`의 `vars:` 아래에 `APP_STORE_APPLE_ID: "1234567890"` 형태로 추가하면 TestFlight의 마지막 빌드 번호 + 1로 올립니다. 비워 두면 1000 + Codemagic 빌드 번호를 씁니다.
 6. Codemagic 앱 화면에서 Check for configuration files 를 누르고, Start new build > 브랜치 `main`, 워크플로 `NOWHERE iOS TestFlight` 로 실행합니다.
