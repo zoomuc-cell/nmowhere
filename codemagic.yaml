@@ -7,7 +7,7 @@ workflows:
     max_build_duration: 60
     integrations:
       # Codemagic 팀/계정 설정 > Integrations > Developer Portal 에 등록한 API 키 이름
-      app_store_connect: nowhere_asc
+      app_store_connect: N8CMWWQ693
     environment:
       ios_signing:
         distribution_type: app_store
