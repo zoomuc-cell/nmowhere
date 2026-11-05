@@ -4,6 +4,8 @@ import UIKit
 final class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        // Android NowhereApp.onCreate 대응: 앱 시작 시 구독 상태 확인
+        ProStore.shared.start()
         return true
     }
 
