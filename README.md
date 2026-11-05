@@ -5,7 +5,7 @@
 NOWHERE는 내가 어디로 어떻게 이동했는지, 어디서 어느 방향으로 사진을 찍었는지를 휴대폰에 기록해 두는 앱입니다.
 기록은 모두 기기 안에만 저장되며, 회원가입이나 로그인이 없습니다.
 
-- 만든 곳: 주식회사 아우라테크놀로지스 (Aura Technologies)
+- 만든 곳: Aura Technologies (aura-technologies.co.kr)
 - 문의: admin@aura-technologies.co.kr
 - 개인정보처리방침: https://zoomuc-cell.github.io/nowhere-privacy/
 
