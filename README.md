@@ -49,7 +49,7 @@ docs/                 설계 문서 (Pro 구독)
 | 최소 OS | Android 7.0 (API 24) | iOS 15 |
 | 위치·센서 | Fused Location, 자이로·가속도·기압계 | CoreLocation, CoreMotion |
 | 기록 저장 | 기기 안 (SharedPreferences) | 기기 안 (앱 전용 폴더의 파일) |
-| 지도 | Leaflet + OpenStreetMap (인터넷 필요) | 같음 |
+| 지도 | Leaflet(앱에 포함, `app/src/main/assets/leaflet`) + OpenStreetMap 지도 이미지 (인터넷 필요) | 같음 |
 
 ## 빌드와 배포
 
