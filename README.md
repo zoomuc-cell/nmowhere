@@ -45,7 +45,7 @@ docs/                 설계 문서 (Pro 구독)
 | 항목 | 안드로이드 | 아이폰 |
 | --- | --- | --- |
 | 앱 ID | `com.auratechnologies.nowhere` | `com.auratechnologies.nowhere` |
-| 버전 | 5.3 (9) | 5.3 (9) |
+| 버전 | 5.4 (10) | 5.3 (9) |
 | 최소 OS | Android 7.0 (API 24) | iOS 15 |
 | 위치·센서 | Fused Location, 자이로·가속도·기압계 | CoreLocation, CoreMotion |
 | 기록 저장 | 기기 안 (SharedPreferences) | 기기 안 (앱 전용 폴더의 파일) |
