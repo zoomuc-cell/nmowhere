@@ -1,0 +1,8 @@
+# Copy this file to key.properties (same folder) and fill in the real values.
+# key.properties is git-ignored. Never commit it or the .jks file.
+#
+# storeFile is relative to the repo root.
+storeFile=nowhere-upload-new.jks
+storePassword=CHANGE_ME
+keyAlias=nowhere-upload
+keyPassword=CHANGE_ME

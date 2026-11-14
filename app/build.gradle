@@ -5,14 +5,29 @@ plugins {
     // id 'com.google.firebase.crashlytics'
 }
 
+// Release signing values live in key.properties at the repo root.
+// That file is git-ignored: never commit passwords or keystores.
+// See key.properties.example for the expected keys.
+def keystorePropsFile = rootProject.file('key.properties')
+def keystoreProps = new Properties()
+if (keystorePropsFile.exists()) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+
 android {
     namespace 'com.auratechnologies.nowhere'
     compileSdk 36
 
     signingConfigs {
         release {
-            storeFile file('../nowhere-release-key.jks')
-            keyAlias 'nowhere-key'
+            // Only configured when key.properties exists, so debug builds
+            // (including the GitHub Actions build) keep working without it.
+            if (keystorePropsFile.exists()) {
+                storeFile rootProject.file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
         }
     }
 
@@ -35,7 +50,9 @@ android {
         }
         release {
             minifyEnabled false
-            //signingConfig signingConfigs.release//
+            if (keystorePropsFile.exists()) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 
