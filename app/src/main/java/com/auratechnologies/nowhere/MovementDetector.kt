@@ -40,6 +40,10 @@ class MovementDetector(context: Context) : SensorEventListener {
 
     private val sensorManager = appContext.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+
+    /** 자이로가 없는 기기에서는 엘리베이터 판정이 덜 정확하다(회전량을 알 수 없음). */
+    val hasGyroscope: Boolean get() = gyroscope != null
+
     private val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     private val barometer = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE)
 

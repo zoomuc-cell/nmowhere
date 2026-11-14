@@ -91,6 +91,32 @@ class MainActivity : AppCompatActivity() {
 
         directionSensor.start()
         checkAndRequestPermissions()
+        showNoGyroscopeNoticeOnce()
+    }
+
+    /**
+     * 자이로 센서가 없는 기기에서는 엘리베이터 이동 판정이 덜 정확할 수 있다.
+     * 처음 한 번만 안내하고, 확인하면 다시 보여주지 않는다.
+     */
+    private fun showNoGyroscopeNoticeOnce() {
+        if (movementDetector.hasGyroscope) return
+        val prefs = getSharedPreferences("app_notices", Context.MODE_PRIVATE)
+        if (prefs.getBoolean("no_gyro_notice_shown", false)) return
+
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("안내")
+            .setMessage(
+                "이 기기에는 자이로 센서가 없습니다.\n\n" +
+                    "위치 기록과 사진 촬영 등 대부분의 기능은 그대로 쓸 수 있지만, " +
+                    "엘리베이터 이동 판정은 다소 덜 정확할 수 있습니다."
+            )
+            .setPositiveButton("확인") { _, _ ->
+                prefs.edit().putBoolean("no_gyro_notice_shown", true).apply()
+            }
+            .setOnCancelListener {
+                prefs.edit().putBoolean("no_gyro_notice_shown", true).apply()
+            }
+            .show()
     }
 
     override fun onResume() {
